@@ -1,0 +1,53 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.0",
+  "body": [
+    {
+      "type": "Image",
+      "url": "https://png2.kisspng.com/20180508/ozq/kisspng-user-computer-icons-system-chinese-wind-title-column-5af1427fd3ab48.378455571525760639867.png",
+      "size": "stretch"
+    },
+    {
+      "type": "TextBlock",
+      "spacing": "medium",
+      "size": "default",
+      "weight": "bolder",
+      "text": "User Information",
+      "wrap": true,
+      "maxLines": 0
+    },
+    {
+      "type": "TextBlock",
+      "size": "default",
+      "isSubtle": "yes",
+      "text": "Name: ${userProfile.name}",
+      "wrap": true,
+      "maxLines": 0
+    }
+	{
+      "type": "TextBlock",
+      "size": "default",
+      "isSubtle": "yes",
+      "text": "City: ${userProfile.city}",
+      "wrap": true,
+      "maxLines": 0
+    }
+	{
+      "type": "TextBlock",
+      "size": "default",
+      "isSubtle": "yes",
+      "text": "Age: ${userProfile.age}",
+      "wrap": true,
+      "maxLines": 0
+    }
+	{
+      "type": "TextBlock",
+      "size": "default",
+      "isSubtle": "yes",
+      "text": "Job: ${userProfile.job}",
+      "wrap": true,
+      "maxLines": 0
+    }
+  ]
+}

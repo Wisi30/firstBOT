@@ -8,10 +8,13 @@ const { ComponentDialog, WaterfallDialog, TextPrompt } = require('botbuilder-dia
 
 // User state for greeting dialog
 const { UserProfile } = require('./userProfile');
+const UserInfoCard = require('./resources/userInfoCard.json');
 
 // Minimum length requirements for city and name
 const CITY_LENGTH_MIN = 5;
 const NAME_LENGTH_MIN = 3;
+const AGE_LENGTH_MIN = 1;
+const JOB_LENGTH_MIN = 5;
 
 // Dialog IDs 
 const PROFILE_DIALOG = 'profileDialog';
@@ -19,6 +22,8 @@ const PROFILE_DIALOG = 'profileDialog';
 // Prompt IDs
 const NAME_PROMPT = 'namePrompt';
 const CITY_PROMPT = 'cityPrompt';
+const AGE_PROMPT = 'agePrompt';
+const JOB_PROMPT = 'jobPrompt';
 
 const VALIDATION_SUCCEEDED = true;
 const VALIDATION_FAILED = !VALIDATION_SUCCEEDED;
@@ -48,12 +53,16 @@ class Greeting extends ComponentDialog {
             this.initializeStateStep.bind(this),
             this.promptForNameStep.bind(this),
             this.promptForCityStep.bind(this),
+            this.promptForAgeStep.bind(this),
+            this.promptForJobStep.bind(this),
             this.displayGreetingStep.bind(this)
         ]));
 
         // Add text prompts for name and city
         this.addDialog(new TextPrompt(NAME_PROMPT, this.validateName));
         this.addDialog(new TextPrompt(CITY_PROMPT, this.validateCity));
+        this.addDialog(new TextPrompt(AGE_PROMPT, this.validateAge));
+        this.addDialog(new TextPrompt(JOB_PROMPT, this.validateJob));
 
         // Save off our state accessor for later use
         this.userProfileAccessor = userProfileAccessor;
@@ -88,7 +97,7 @@ class Greeting extends ComponentDialog {
     async promptForNameStep(step) {
         const userProfile = await this.userProfileAccessor.get(step.context);
         // if we have everything we need, greet user and return
-        if (userProfile !== undefined && userProfile.name !== undefined && userProfile.city !== undefined) {
+        if (userProfile !== undefined && userProfile.name !== undefined && userProfile.city !== undefined && user.Profile.age !== undefined && userProfile.job !== undefined) {
             return await this.greetUser(step);
         }
         if (!userProfile.name) {
@@ -124,6 +133,52 @@ class Greeting extends ComponentDialog {
     /**
      * Waterfall Dialog step functions.
      *
+     * Using a text prompt, prompt the user to know his age.
+     * Only prompt if we don't have this information already.
+     *
+     * @param {WaterfallStepContext} step contextual information for the current step being executed
+     */
+    async promptForAgeStep(step) {
+        // save name, if prompted for
+        const userProfile = await this.userProfileAccessor.get(step.context);
+        if (userProfile.city === undefined && step.result) {
+            let lowerCaseCity = step.result;
+            // capitalize and set city
+            userProfile.city = lowerCaseCity.charAt(0).toUpperCase() + lowerCaseCity.substr(1);
+            await this.userProfileAccessor.set(step.context, userProfile);
+        }
+        if (!userProfile.age) {
+            return await step.prompt(AGE_PROMPT, `Hello ${ userProfile.name }, how old are you?`);
+        } else {
+            return await step.next();
+        }
+    }
+    /**
+     * Waterfall Dialog step functions.
+     *
+     * Using a text prompt, prompt the user to know his age.
+     * Only prompt if we don't have this information already.
+     *
+     * @param {WaterfallStepContext} step contextual information for the current step being executed
+     */
+    async promptForJobStep(step) {
+        // save name, if prompted for
+        const userProfile = await this.userProfileAccessor.get(step.context);
+        if (userProfile.age === undefined && step.result) {
+            let lowerCaseAge = step.result;
+            // capitalize and set age
+            userProfile.age = lowerCaseAge.charAt(0).toUpperCase() + lowerCaseAge.substr(1);
+            await this.userProfileAccessor.set(step.context, userProfile);
+        }
+        if (!userProfile.job) {
+            return await step.prompt(JOB_PROMPT, `Hello ${ userProfile.name }, what is your job here?`);
+        } else {
+            return await step.next();
+        }
+    }
+    /**
+     * Waterfall Dialog step functions.
+     *
      * Having all the data we need, simply display a summary back to the user.
      *
      * @param {WaterfallStepContext} step contextual information for the current step being executed
@@ -131,10 +186,10 @@ class Greeting extends ComponentDialog {
     async displayGreetingStep(step) {
         // Save city, if prompted for
         const userProfile = await this.userProfileAccessor.get(step.context);
-        if (userProfile.city === undefined && step.result) {
-            let lowerCaseCity = step.result;
-            // capitalize and set city
-            userProfile.city = lowerCaseCity.charAt(0).toUpperCase() + lowerCaseCity.substr(1);
+        if (userProfile.job === undefined && step.result) {
+            let lowerCaseJob = step.result;
+            // capitalize and set job
+            userProfile.job = lowerCaseJob.charAt(0).toUpperCase() + lowerCaseJob.substr(1);
             await this.userProfileAccessor.set(step.context, userProfile);
         }
         return await this.greetUser(step);
@@ -170,6 +225,36 @@ class Greeting extends ComponentDialog {
         }
     }
     /**
+     * Validator function to verify if age meets required constraints.
+     *
+     * @param {PromptValidatorContext} validation context for this validator.
+     */
+    async validateAge(validatorContext) {
+        // Validate that the user entered a minimum length for their name
+        const value = (validatorContext.recognized.value || '').trim();
+        if (value.length >= AGE_LENGTH_MIN) {
+            return VALIDATION_SUCCEEDED;
+        } else {
+            await validatorContext.context.sendActivity(`Age needs to be at least ${ AGE_LENGTH_MIN } characters long.`);
+            return VALIDATION_FAILED;
+        }
+    }
+    /**
+     * Validator function to verify if job meets required constraints.
+     *
+     * @param {PromptValidatorContext} validation context for this validator.
+     */
+    async validateJob(validatorContext) {
+        // Validate that the user entered a minimum length for their name
+        const value = (validatorContext.recognized.value || '').trim();
+        if (value.length >= JOB_LENGTH_MIN) {
+            return VALIDATION_SUCCEEDED;
+        } else {
+            await validatorContext.context.sendActivity(`Job needs to be at least ${ JOB_LENGTH_MIN } characters long.`);
+            return VALIDATION_FAILED;
+        }
+    }
+    /**
      * Helper function to greet user with information in greetingState.
      *
      * @param {WaterfallStepContext} step contextual information for the current step being executed
@@ -177,8 +262,9 @@ class Greeting extends ComponentDialog {
     async greetUser(step) {
         const userProfile = await this.userProfileAccessor.get(step.context);
         // Display to the user their profile information and end dialog
-        await step.context.sendActivity(`Hi ${ userProfile.name }, from ${ userProfile.city }, nice to meet you!`);
+        await step.context.sendActivity(`Hi ${ userProfile.name }, from ${ userProfile.city } and you are ${ userProfile.age } and you are ${ userProfile.job }, amazing!`);
         await step.context.sendActivity(`You can always say 'My name is <your name> to reintroduce yourself to me.`);
+        exports.UserInfoCard = UserInfoCard;
         return await step.endDialog();
     }
 }

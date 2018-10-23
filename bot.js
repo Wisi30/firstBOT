@@ -10,6 +10,7 @@ const { DialogSet, DialogTurnStatus } = require('botbuilder-dialogs');
 
 const { UserProfile } = require('./dialogs/greeting/userProfile');
 const { WelcomeCard } = require('./dialogs/welcome');
+const { UserInfoCard } = require('./dialogs/userinfo')
 const { GreetingDialog } = require('./dialogs/greeting');
 
 // Greeting Dialog ID

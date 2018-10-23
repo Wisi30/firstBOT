@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-const { GreetingDialog } = require('./greeting');
+const UserInfoCard = require('./resources/UserInfoCard.json');
 
-exports.GreetingDialog = GreetingDialog;
-
+exports.UserInfoCard = UserInfoCard;
